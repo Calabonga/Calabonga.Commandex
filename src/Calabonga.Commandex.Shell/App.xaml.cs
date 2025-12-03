@@ -1,6 +1,6 @@
 ﻿using Calabonga.Commandex.Engine.Dialogs;
 using Calabonga.Commandex.Shell.Engine;
-using Calabonga.Commandex.Shell.Infrastructure.Helpers;
+using Calabonga.Commandex.Shell.Infrastructure;
 using Calabonga.Commandex.Shell.Infrastructure.Identity;
 using Calabonga.Commandex.Shell.Infrastructure.Messaging;
 using Calabonga.Commandex.Shell.Models;

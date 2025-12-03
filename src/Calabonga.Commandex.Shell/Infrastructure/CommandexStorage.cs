@@ -2,7 +2,7 @@
 using Calabonga.Commandex.Shell.Models;
 using System.IdentityModel.Tokens.Jwt;
 
-namespace Calabonga.Commandex.Shell.Infrastructure.Helpers;
+namespace Calabonga.Commandex.Shell.Infrastructure;
 
 /// <summary>
 /// Commandex can save to file and load data from file
