@@ -28,6 +28,10 @@ It's a complex solution with a few repositories:
 
 ## History of changes
 
+### v4.0.0 2026-04-20
+
+Migration to NET10
+
 ### v3.0.0 2025-07-30
 
 Engine package update brings a new type of the Commandex command - ZoneCommandexCommand<TView, TViewModel>. It's like a dialog but shown in shell (built-in).
