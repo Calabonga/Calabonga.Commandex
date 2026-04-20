@@ -5,27 +5,28 @@
 /// </summary>
 public sealed class CommandGroup
 {
-    private readonly List<CommandItem> _commandItems = [];
-
     public required string Name { get; set; } = null!;
 
     public required string Description { get; set; } = null!;
 
     public required List<string> Tags { get; init; } = [];
 
-    public List<CommandItem> CommandItems => _commandItems;
+    public List<CommandItem> CommandItems { get; } = [];
 
     public List<CommandGroup> SubGroups { get; set; } = [];
 
-    public void AddGroup(IEnumerable<CommandGroup> items) => SubGroups.AddRange(items);
+    public void AddGroup(IEnumerable<CommandGroup> items)
+    {
+        SubGroups.AddRange(items);
+    }
 
     public void AddCommand(CommandItem item)
     {
-        if (_commandItems.Contains(item))
+        if (CommandItems.Contains(item))
         {
             return;
         }
 
-        _commandItems.Add(item);
+        CommandItems.Add(item);
     }
 }
