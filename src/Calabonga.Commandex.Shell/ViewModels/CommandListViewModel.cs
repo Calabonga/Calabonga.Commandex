@@ -1,6 +1,5 @@
 ﻿using Calabonga.Commandex.Engine.Base;
 using Calabonga.Commandex.Engine.Dialogs;
-using Calabonga.Commandex.Engine.Extensions;
 using Calabonga.Commandex.Engine.Settings;
 using Calabonga.Commandex.Engine.ToastNotifications;
 using Calabonga.Commandex.Engine.ToastNotifications.Controls;
@@ -17,7 +16,6 @@ using Microsoft.Extensions.Logging;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
-using System.Text.Json;
 using System.Windows;
 
 namespace Calabonga.Commandex.Shell.ViewModels;
@@ -25,7 +23,6 @@ namespace Calabonga.Commandex.Shell.ViewModels;
 public partial class CommandListViewModel : ZoneViewModelBase,
     IRecipient<SearchTermChangedMessage>
 {
-    private readonly IResultProcessor _resultProcessor;
     private readonly ICommandService _commandService;
     private readonly CommandExecutor _commandExecutor;
     private readonly IConfigurationFinder _configurationFinder;
@@ -39,7 +36,6 @@ public partial class CommandListViewModel : ZoneViewModelBase,
         IConfigurationFinder configurationFinder,
         CommandExecutor commandExecutor,
         ICommandService commandService,
-        IResultProcessor resultProcessor,
         IAppSettings appSettings,
         ILogger<CommandListViewModel> logger)
     {
@@ -49,7 +45,6 @@ public partial class CommandListViewModel : ZoneViewModelBase,
         _configurationFinder = configurationFinder;
         _commandExecutor = commandExecutor;
         _commandService = commandService;
-        _resultProcessor = resultProcessor;
 
         ApplyViewTemplate(appSettings);
 
@@ -143,27 +138,28 @@ public partial class CommandListViewModel : ZoneViewModelBase,
     [RelayCommand(CanExecute = nameof(CanExecuteAction))]
     private async Task ExecuteActionAsync()
     {
-        var operation = await _commandExecutor.ExecuteAsync(SelectedCommand!);
-        if (operation.Ok)
+        try
         {
-            if (!operation.Result.IsPushToShellEnabled)
+            var operation = await _commandExecutor.ExecuteAsync(SelectedCommand!);
+            if (!operation.Ok)
             {
-                IsBusy = false;
+                _logger.LogError(operation.Error, $"[COMMANDEX] {operation.Error.Message}");
+                _notificationManager.Show(NotificationManager.CreateErrorToast(operation.Error.Message), nameof(NotificationZone));
                 return;
             }
 
-            IsBusy = false;
+            var result = operation.Result;
+            if (!result.IsPushToShellEnabled)
+            {
+                return;
+            }
 
-            _resultProcessor.ProcessCommand(operation.Result);
-            var data = JsonSerializer.Serialize(operation.Result, JsonSerializerOptionsExt.Cyrillic);
-            _notificationManager.Show(NotificationManager.CreateSuccessToast($"Command executed successfully. {data} More results in the logs-file."), nameof(NotificationZone));
-            return;
+            _notificationManager.Show(NotificationManager.CreateSuccessToast($"Command executed successfully. {result.SerializedResult} More results in the logs-file."), nameof(NotificationZone));
         }
-
-        IsBusy = false;
-        _logger.LogError(operation.Error, $"[COMMANDEX] {operation.Error.Message}");
-        _notificationManager.Show(NotificationManager.CreateErrorToast(operation.Error.Message), nameof(NotificationZone));
-
+        finally
+        {
+            IsBusy = false;
+        }
     }
     #endregion
 
