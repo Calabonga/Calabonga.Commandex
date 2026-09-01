@@ -1,6 +1,7 @@
 ﻿using Calabonga.Commandex.Engine.Base;
 using Calabonga.Commandex.Engine.Exceptions;
 using Calabonga.Commandex.Engine.NugetDependencies;
+using Calabonga.Commandex.Engine.Settings;
 using Calabonga.Commandex.Shell.Extensions;
 using Calabonga.OperationResults;
 using NuGet.Common;
@@ -22,6 +23,13 @@ namespace Calabonga.Commandex.Shell.Engine;
 /// </summary>
 public sealed class NugetLoader
 {
+    private readonly IAppSettings _appSettings;
+
+    public NugetLoader(IAppSettings appSettings)
+    {
+        _appSettings = appSettings;
+    }
+
     /// <summary>
     /// Loads dependent nuget-packages from nuget feed.
     /// </summary>
@@ -33,10 +41,10 @@ public sealed class NugetLoader
     /// <returns></returns>
     public async Task<OperationEmpty<ExecuteCommandexCommandException>> LoadPackagesFromNugetAsync(ICommandexCommand command, List<INugetDependency> items, NuGetSourceType sourceType, string artifactsFolderPath, CancellationToken cancellationToken)
     {
-        foreach (var nugetDependency in items.Select(x => x.Dependencies))
+        foreach (var dependency in items.SelectMany(x => x.Dependencies))
         {
-            var packageId = nugetDependency[0].Name;
-            var version = nugetDependency[0].Version;
+            var packageId = dependency.Name;
+            var version = dependency.Version;
 
             var extractedFiles = await LoadPackageByIdFromNugetAsync(command, packageId, version, sourceType, artifactsFolderPath, cancellationToken);
 
@@ -62,17 +70,17 @@ public sealed class NugetLoader
     /// <summary>
     /// Returns a nuget-repository depend on <see cref="NuGetSourceType"/>
     /// </summary>
-    /// <param name="isRemote"></param>
-    /// <param name="artifactsFolderPath"></param>
+    /// <param name="sourceType">local artifacts feed or the remote feed configured via NUGET_FEED_URL</param>
+    /// <param name="localFeedPath">path used as the package source when <paramref name="sourceType"/> is Local</param>
     /// <returns></returns>
     /// <exception cref="ArgumentOutOfRangeException"></exception>
-    private SourceRepository GetRepository(NuGetSourceType isRemote, string artifactsFolderPath)
+    private SourceRepository GetRepository(NuGetSourceType sourceType, string localFeedPath)
     {
-        return isRemote switch
+        return sourceType switch
         {
-            NuGetSourceType.Local => Repository.Factory.GetCoreV3(new PackageSource(artifactsFolderPath, "AppDefinitionsRepository", true, false, false)),
-            NuGetSourceType.Remote => Repository.Factory.GetCoreV3("https://api.nuget.org/v3/index.json"),
-            _ => throw new ArgumentOutOfRangeException(nameof(isRemote), isRemote, null)
+            NuGetSourceType.Local => Repository.Factory.GetCoreV3(new PackageSource(localFeedPath, "AppDefinitionsRepository", true, false, false)),
+            NuGetSourceType.Remote => Repository.Factory.GetCoreV3(_appSettings.NugetFeedUrl),
+            _ => throw new ArgumentOutOfRangeException(nameof(sourceType), sourceType, null)
         };
     }
 
