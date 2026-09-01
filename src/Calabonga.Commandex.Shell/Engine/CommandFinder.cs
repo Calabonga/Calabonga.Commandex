@@ -192,7 +192,7 @@ public static class CommandFinder
 
             if (group.SubGroups.Any())
             {
-                FindSubGroupForGroup(group.SubGroups, commandItem);
+                FindSubGroupForGroup(group.SubGroups, item);
             }
         }
     }
