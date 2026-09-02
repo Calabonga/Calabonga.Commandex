@@ -21,11 +21,15 @@ public sealed class CommandItem : ItemBase
         }
     }
 
-    public List<CommandItem> Items => _items;
+    public List<CommandItem> Items { get; private set; } = [];
 
-    void SetItems(List<CommandItem> items) => _items = items;
+    public void AddCommand(CommandItem item)
+    {
+        Items.Add(item);
+    }
 
-    private List<CommandItem> _items = [];
-
-    public void AddCommand(CommandItem item) => _items.Add(item);
+    void SetItems(List<CommandItem> items)
+    {
+        Items = items;
+    }
 }
