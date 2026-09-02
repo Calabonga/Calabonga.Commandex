@@ -22,15 +22,15 @@
 		<PackageReference Include="Calabonga.Commandex.Engine.Processors" Version="4.0.0" />
 
 		<PackageReference Include="Calabonga.PredicatesBuilder" Version="2.0.2" />
-		<PackageReference Include="DotNetEnv" Version="3.1.1" />
-		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.6" />
-		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.6" />
-		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.6" />
+		<PackageReference Include="DotNetEnv" Version="3.2.0" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="10.0.11" />
+		<PackageReference Include="Microsoft.Extensions.Http" Version="10.0.11" />
+		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="10.0.11" />
 		<PackageReference Include="Microsoft.Xaml.Behaviors.Wpf" Version="1.1.142" />
 		<PackageReference Include="Serilog.Extensions.Hosting" Version="10.0.0" />
-		<PackageReference Include="NuGet.Protocol" Version="7.3.1" />
+		<PackageReference Include="NuGet.Protocol" Version="7.9.0" />
 		<PackageReference Include="Serilog.Sinks.File" Version="7.0.0" />
-		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.17.0" />
+		<PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="8.22.0" />
 	</ItemGroup>
 
 	<ItemGroup>
