@@ -3,6 +3,9 @@
                     xmlns:models="clr-namespace:Calabonga.Commandex.Shell.Models"
                     xmlns:customControls="clr-namespace:Calabonga.Commandex.Shell.CustomControls">
 
+    <SolidColorBrush x:Key="AppBackgroundBrush" Color="White" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="Black" />
+
     <Style x:Key="CommandGroupStyle" TargetType="{x:Type Border}">
         <Setter Property="BorderBrush" Value="#eeeeee" />
         <Setter Property="BorderThickness" Value="1" />

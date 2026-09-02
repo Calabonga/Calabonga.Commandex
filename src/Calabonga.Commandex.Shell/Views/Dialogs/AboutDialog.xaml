@@ -32,7 +32,6 @@
 
                 </Grid.RowDefinitions>
                 <Image Source="/logo.png" Stretch="Fill" Grid.Row="1" Margin="109,32,109,0" VerticalAlignment="Center" HorizontalAlignment="Center" Grid.ColumnSpan="2" Width="100" Height="100"/>
-                <TextBlock Text="NET9.0" Grid.Row="0" Grid.Column="0" Foreground="Gray" FontSize="10"/>
                 <Button Grid.Row="0" Grid.Column="2" Content="x" MinHeight="20" MinWidth="20" Command="{Binding Path=CloseDialogCommand}"/>
                 <TextBlock Grid.Row="1" Grid.Column="0"
                        TextAlignment="Center"

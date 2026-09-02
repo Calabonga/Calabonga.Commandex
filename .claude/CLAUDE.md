@@ -13,7 +13,7 @@ WPF-приложение-лаунчер на .NET 10 (только Windows): н�
 
 - «Shell» — имя репозитория; «Commandex» — имя приложения (программы) в нём.
 - Engine потребляется **только как NuGet-пакет** `Calabonga.Commandex.Engine.Processors`
-  (сейчас `4.0.0`), который включает `Calabonga.Commandex.Engine`. Никогда не через project
+  (сейчас `5.0.1`), который включает `Calabonga.Commandex.Engine`. Никогда не через project
   reference. Локальные правки в исходниках Engine не видны, пока не собран и не опубликован
   (или не подключён локальным feed) новый пакет.
 - CI нет (в `.github/` только `FUNDING.yml`). В NuGet приложение не пакуется.
@@ -163,7 +163,7 @@ dotnet test src/Calabonga.Commandex.sln -- --filter-method "*CanConvert_ToList*"
 3. Сгенерированная WPF class library ссылается на NuGet `Calabonga.Commandex.Engine`. Реализуйте
    выбранный базовый класс и `AppDefinition`. **Версию пакета Engine держите равной версии Engine,
    с которой собран этот Shell** (сейчас Shell собран против
-   `Calabonga.Commandex.Engine.Processors 4.0.0`; опубликованные версии Engine могут отставать от
+   `Calabonga.Commandex.Engine.Processors 5.0.1`; опубликованные версии Engine могут отставать от
    исходников в репозитории Engine).
 4. В `.csproj` команды есть post-build target `CopyDLLs`, копирующий `<имя>.dll` + `.pdb` в
    `Calabonga.Commandex.Shell/PublishedCommands` (поправьте относительный `PublishedCommandsDir`,
