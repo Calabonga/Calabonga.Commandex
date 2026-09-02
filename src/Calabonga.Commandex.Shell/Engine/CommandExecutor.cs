@@ -1,9 +1,9 @@
-﻿using Calabonga.Commandex.Engine.Base;
+using Calabonga.Commandex.Engine.Base;
 using Calabonga.Commandex.Engine.Exceptions;
-using Calabonga.Commandex.Engine.ToastNotifications;
 using Calabonga.Commandex.Shell.Models;
 using Calabonga.Commandex.Shell.Services;
 using Calabonga.OperationResults;
+using Microsoft.Extensions.DependencyInjection;
 using Serilog;
 
 namespace Calabonga.Commandex.Shell.Engine;
@@ -13,17 +13,17 @@ namespace Calabonga.Commandex.Shell.Engine;
 /// </summary>
 public sealed class CommandExecutor
 {
-    private readonly INotificationManager _notificationManager;
-    private readonly IEnumerable<ICommandexCommand> _commands;
+    private readonly IServiceScopeFactory _scopeFactory;
+    private readonly IResultProcessor _resultProcessor;
     private readonly ArtifactService _artifactService;
 
     public CommandExecutor(
-        INotificationManager notificationManager,
-        IEnumerable<ICommandexCommand> commands,
+        IServiceScopeFactory scopeFactory,
+        IResultProcessor resultProcessor,
         ArtifactService artifactService)
     {
-        _notificationManager = notificationManager;
-        _commands = commands;
+        _scopeFactory = scopeFactory;
+        _resultProcessor = resultProcessor;
         _artifactService = artifactService;
     }
 
@@ -44,13 +44,20 @@ public sealed class CommandExecutor
 
     /// <summary>
     /// Returns a status of the command executing operation without a result.
-    /// Pipeline: Find command -> Prepare -> Execute -> Return status.
+    /// Pipeline: Find command -> Prepare -> Execute -> Process result -> Dispose -> Return status.
     /// </summary>
     /// <param name="commandItem"></param>
-    /// <returns>Nothing when Success and Error <see cref="ExecuteCommandexCommandException"/> when error occurred.</returns>
-    public async Task<Operation<ICommandexCommand, ExecuteCommandexCommandException>> ExecuteAsync(CommandItem commandItem)
+    /// <returns><see cref="CommandExecutionResult"/> when Success and Error <see cref="ExecuteCommandexCommandException"/> when error occurred.</returns>
+    public async Task<Operation<CommandExecutionResult, ExecuteCommandexCommandException>> ExecuteAsync(CommandItem commandItem)
     {
-        var command = _commands.FirstOrDefault(x => x.TypeName == commandItem.TypeName);
+        // A dedicated scope per execution guarantees a fresh command instance every run
+        // (command registrations are Scoped/Transient) and disposes it deterministically.
+        using var scope = _scopeFactory.CreateScope();
+
+        var command = scope.ServiceProvider
+            .GetServices<ICommandexCommand>()
+            .FirstOrDefault(x => x.TypeName == commandItem.TypeName);
+
         if (command is null)
         {
             const string errorMessage = "Command not found in the available commands list.";
@@ -71,15 +78,29 @@ public sealed class CommandExecutor
 
         OnCommandPrepared();
 
-        var operation = await command.ExecuteCommandAsync();
-        if (operation.Ok)
+        // The command instance is owned by the scope above: leaving this method disposes the
+        // scope and therefore the command - deterministically, on both success and failure.
+        try
         {
-            command.Dispose();
-            return Operation.Result(command);
-        }
+            var operation = await command.ExecuteCommandAsync();
+            if (!operation.Ok)
+            {
+                return Operation.Error(new ExecuteCommandexCommandException(operation.Error.Message, operation.Error));
+            }
 
-        command.Dispose();
-        return Operation.Error(new ExecuteCommandexCommandException(operation.Error.Message, operation.Error));
+            // The result must be consumed while the command instance is still alive.
+            if (command.IsPushToShellEnabled)
+            {
+                _resultProcessor.ProcessCommand(command);
+            }
+
+            return Operation.Result(CommandExecutionResult.FromCommand(command));
+        }
+        catch (Exception exception)
+        {
+            Log.Logger.Error(exception, exception.Message);
+            return Operation.Error(new ExecuteCommandexCommandException(exception.Message, exception));
+        }
     }
 
     private void OnCommandPrepared()

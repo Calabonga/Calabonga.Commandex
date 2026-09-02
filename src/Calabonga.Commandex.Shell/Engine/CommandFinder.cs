@@ -1,5 +1,4 @@
 ﻿using Calabonga.Commandex.Engine.Base;
-using Calabonga.Commandex.Engine.NugetDependencies;
 using Calabonga.Commandex.Shell.Models;
 using Calabonga.OperationResults;
 using Calabonga.PredicatesBuilder;
@@ -77,10 +76,6 @@ public static class CommandFinder
 
                     Log.Logger.Debug("[{Command}] is type of {Type}", commandType.Name, typeName);
                 }
-
-                var nugetDependencies = exportedTypes.Where(NugetDependencyFindPredicate).ToList();
-                Log.Logger.Information("NugetDependencies for {File} found {Count}", fileInfo.Name, nugetDependencies.Count);
-
 
                 types.AddRange(modulesTypes);
             }
@@ -192,7 +187,7 @@ public static class CommandFinder
 
             if (group.SubGroups.Any())
             {
-                FindSubGroupForGroup(group.SubGroups, commandItem);
+                FindSubGroupForGroup(group.SubGroups, item);
             }
         }
     }
@@ -250,11 +245,6 @@ public static class CommandFinder
     private static bool AppDefinitionFindPredicate(Type type)
     {
         return type is { IsAbstract: false, IsInterface: false } && typeof(AppDefinition).IsAssignableFrom(type);
-    }
-
-    private static bool NugetDependencyFindPredicate(Type type)
-    {
-        return type is { IsAbstract: false, IsInterface: false } && typeof(INugetDependency).IsAssignableFrom(type);
     }
 
     private static bool CommandexPredicate(Type type)

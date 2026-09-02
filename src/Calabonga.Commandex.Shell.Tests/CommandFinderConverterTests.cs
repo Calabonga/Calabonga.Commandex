@@ -1,5 +1,6 @@
 ﻿using Calabonga.Commandex.Engine.Base;
 using Calabonga.Commandex.Shell.Engine;
+using Calabonga.Commandex.Shell.Models;
 using Calabonga.Commandex.Shell.Tests.Commands;
 using Moq;
 
@@ -169,6 +170,47 @@ public class CommandFinderConverterTests
 
 
 
+
+    [Fact]
+    public void CommandFinder_ConvertToGroupedItems_KeepsThirdLevelUnderItsParent()
+    {
+        var commands = GetCommands();
+        var reader = new Mock<ISettingsReaderConfiguration>();
+
+        var items = CommandFinder
+            .ConvertToGroupedItems(new ThreeLevelGroupBuilder(), commands, reader.Object, string.Empty)
+            .ToList();
+
+        var level1 = Assert.Single(items, x => x.Name.StartsWith("L1"));
+        var level2 = Assert.Single(level1.Items, x => x.Name.StartsWith("L2"));
+        var level3 = Assert.Single(level2.Items, x => x.Name.StartsWith("L3"));
+
+        Assert.NotNull(level3);
+        // before the fix the third level was wrongly attached to the first-level group
+        Assert.DoesNotContain(level1.Items, x => x.Name.StartsWith("L3"));
+    }
+
+    private sealed class ThreeLevelGroupBuilder : IGroupBuilder
+    {
+        public CommandGroup GetDefault()
+            => new() { Name = "Untagged", Description = "Group for untagged commandex command.", Tags = [] };
+
+        public List<CommandGroup> GetGroups() =>
+        [
+            new()
+            {
+                Name = "L1", Tags = ["l1"], Description = "Description",
+                SubGroups =
+                [
+                    new()
+                    {
+                        Name = "L2", Tags = ["l2"], Description = "Description",
+                        SubGroups = [new() { Name = "L3", Tags = ["l3"], Description = "Description" }]
+                    }
+                ]
+            }
+        ];
+    }
 
     private IEnumerable<ICommandexCommand> GetCommands()
         => new List<ICommandexCommand>
