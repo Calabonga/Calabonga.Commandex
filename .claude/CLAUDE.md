@@ -56,19 +56,24 @@ dotnet run --project src/Calabonga.Commandex.Shell/Calabonga.Commandex.Shell.csp
 
 Проект работает на **Microsoft.Testing.Platform (MTP)**, не на VSTest:
 
-- пакеты `xunit.v3` + `xunit.runner.visualstudio`, `<OutputType>Exe</OutputType>`;
-- **нет** `Microsoft.NET.Test.Sdk` и `coverlet.collector` (оба только под VSTest);
-- сбор покрытия отсутствует — при необходимости `Microsoft.Testing.Extensions.CodeCoverage`
-  + `dotnet test --coverage`;
+- пакет `xunit.v3` (4.x), `<OutputType>Exe</OutputType>` + `<UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>`
+  (без последнего `xunit.v3` 4.x генерирует классический console-entrypoint вместо MTP);
+- **нет** `Microsoft.NET.Test.Sdk`, `coverlet.collector`, `xunit.runner.visualstudio` — всё это только под VSTest;
+- сбор покрытия отсутствует — при необходимости `Microsoft.Testing.Extensions.CodeCoverage`;
 - `global.json` в корне репо содержит секцию `test` (`"runner": "Microsoft.Testing.Platform"`) —
   без неё `dotnet test` на .NET 10 SDK падает с «VSTest target is no longer supported».
   Секции `sdk` в `global.json` нет.
 
+Запуск — через `dotnet run` по тест-проекту (MTP-приложение). **Не** `dotnet test`: его
+server-mode хендшейк (`--server dotnettestcli`) с этим стеком (`xunit.v3` 4.0.0 / MTP 2.3.3 /
+SDK 10.0.400) на десктопном тест-хосте нестабилен и часто отдаёт «Zero tests ran» (exit 5).
+
 ```bash
-dotnet test src/Calabonga.Commandex.sln
+dotnet build src/Calabonga.Commandex.sln -c Release
+dotnet run --project src/Calabonga.Commandex.Shell.Tests/Calabonga.Commandex.Shell.Tests.csproj --no-build -c Release
 # фильтры — опции MTP после `--`:
-dotnet test src/Calabonga.Commandex.sln -- --filter-class "*CommandFinderConverterTests"
-dotnet test src/Calabonga.Commandex.sln -- --filter-method "*CanConvert_ToList*"
+dotnet run --project src/Calabonga.Commandex.Shell.Tests/Calabonga.Commandex.Shell.Tests.csproj -- --filter-class "*CommandFinderConverterTests"
+dotnet run --project src/Calabonga.Commandex.Shell.Tests/Calabonga.Commandex.Shell.Tests.csproj -- --filter-method "*CanConvert_ToList*"
 ```
 
 ## Конфигурация (`commandex.env`)
